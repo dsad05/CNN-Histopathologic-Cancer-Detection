@@ -110,8 +110,8 @@ plt.figure(figsize=(10, 5))
 
 # Plot Loss
 plt.subplot(1, 2, 1)
-plt.plot(train_losses, label="Training Loss")
-plt.plot(val_losses, label="Validation Loss")
+plt.plot(train_losses, '-o', label="Training Loss")
+plt.plot(val_losses, '-o', label="Validation Loss")
 plt.xlabel("Epoch")
 plt.ylabel("Loss")
 plt.title("Training and Validation Loss")
@@ -119,7 +119,7 @@ plt.legend()
 
 # Plot Accuracy
 plt.subplot(1, 2, 2)
-plt.plot(val_accuracies, label="Validation Accuracy")
+plt.plot(val_accuracies, '-o', label="Validation Accuracy")
 plt.xlabel("Epoch")
 plt.ylabel("Accuracy (%)")
 plt.title("Validation Accuracy")

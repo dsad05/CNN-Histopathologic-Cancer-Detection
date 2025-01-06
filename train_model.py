@@ -9,7 +9,7 @@ from torchvision.models import ResNet18_Weights  # Import weights class for ResN
 
 from preprocess_data import get_data_loaders
 
-EPOCHS = 2
+EPOCHS = 50
 
 # Paths to data and labels
 data_dir = './data/train'

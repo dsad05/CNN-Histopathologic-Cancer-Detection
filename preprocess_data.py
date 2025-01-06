@@ -6,6 +6,8 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
+dataset_size = 15000
+BATCH = 64
 
 # Custom Dataset Class
 class CustomDataset(Dataset):
@@ -49,7 +51,7 @@ val_transform = transforms.Compose([
 ])
 
 
-def get_data_loaders(data_dir, labels_file, total_size=5000, train_ratio=0.7, val_ratio=0.15, batch_size=32):
+def get_data_loaders(data_dir, labels_file, total_size=dataset_size, train_ratio=0.7, val_ratio=0.15, batch_size=BATCH):
     # Load the labels file
     labels_df = pd.read_csv(labels_file)
 

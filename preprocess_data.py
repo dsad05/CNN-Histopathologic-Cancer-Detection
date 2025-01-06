@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
-dataset_size = 15000
+dataset_size = 5000
 BATCH = 64
 
 # Custom Dataset Class

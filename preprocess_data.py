@@ -6,21 +6,35 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
-dataset_size = 5000
-BATCH = 64
+from torch.utils.data import Dataset
+from torchvision import transforms
+from PIL import Image
+import os
 
-# Custom Dataset Class
+
 class CustomDataset(Dataset):
     def __init__(self, data_dir, labels_df, transform=None):
         self.data_dir = data_dir
         self.transform = transform
+
+        # Printing the transform being used (with repr to show the object clearly)
+        if self.transform:
+            print(f"Used transform: {repr(self.transform)}")
+        else:
+            print("No transform is being used.")
 
         # List of image IDs and corresponding labels
         self.filenames = labels_df['id'].tolist()
         self.labels = labels_df['label'].tolist()
 
         # Create full paths for images
-        self.full_filenames = [os.path.join(data_dir, f"{filename}.tif") for filename in self.filenames]  # Assuming TIFF format
+        self.full_filenames = [os.path.join(data_dir, f"{filename}.tif") for filename in
+                               self.filenames]  # Assuming TIFF format
+
+        # Default transform for converting PIL Image to tensor
+        self.default_transform = transforms.Compose([
+            transforms.ToTensor(),  # Convert image to tensor
+        ])
 
     def __len__(self):
         return len(self.filenames)
@@ -30,11 +44,13 @@ class CustomDataset(Dataset):
         image = Image.open(self.full_filenames[idx]).convert("RGB")  # Convert to RGB to standardize the format
 
         if self.transform:
-            image = self.transform(image)  # Apply transformations if any
+            image = self.transform(image)  # Apply custom transformations if provided
+        else:
+            image = self.default_transform(image)  # Apply default ToTensor transform if no custom transform is provided
+
         return image, self.labels[idx]
 
 
-# Define transformations (for tensor inputs)
 train_transform = transforms.Compose([
     transforms.RandomRotation(30),
     transforms.RandomCrop(64),
@@ -50,8 +66,7 @@ val_transform = transforms.Compose([
     transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])  # Normalize the image for validation
 ])
 
-
-def get_data_loaders(data_dir, labels_file, total_size=dataset_size, train_ratio=0.7, val_ratio=0.15, batch_size=BATCH):
+def get_data_loaders(data_dir, labels_file, total_size,  batch_size, train_ratio=0.7, val_ratio=0.15):
     # Load the labels file
     labels_df = pd.read_csv(labels_file)
 
@@ -77,10 +92,15 @@ def get_data_loaders(data_dir, labels_file, total_size=dataset_size, train_ratio
         temp_df, test_size=test_size / (val_size + test_size), random_state=0, stratify=temp_df['label']
     )
 
-    # Create datasets for train, validation, and test
-    train_dataset = CustomDataset(data_dir=data_dir, labels_df=train_df, transform=train_transform)
-    val_dataset = CustomDataset(data_dir=data_dir, labels_df=val_df, transform=val_transform)
-    test_dataset = CustomDataset(data_dir=data_dir, labels_df=test_df, transform=val_transform)
+    # Print before creating the datasets for train, validation, and test
+    print("Creating Train dataset...")
+    train_dataset = CustomDataset(data_dir=data_dir, labels_df=train_df)
+
+    print("Creating Validation dataset...")
+    val_dataset = CustomDataset(data_dir=data_dir, labels_df=val_df)
+
+    print("Creating Test dataset...")
+    test_dataset = CustomDataset(data_dir=data_dir, labels_df=test_df)
 
     # Create DataLoaders for training, validation, and test sets
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
@@ -91,3 +111,61 @@ def get_data_loaders(data_dir, labels_file, total_size=dataset_size, train_ratio
         f"Data split completed: {len(train_df)} training samples, {len(val_df)} validation samples, {len(test_df)} test samples.")
 
     return train_loader, val_loader, test_loader
+
+
+def check_normalization(loader, loader_name):
+    """Check data normalization in the DataLoader."""
+    for images, labels in loader:  # Get the first batch
+        # Calculate statistics
+        print(f"--- {loader_name} ---")
+        print(f"Shape: {images.shape}")  # Batch size and dimensions
+        print(f"Min: {images.min().item()}, Max: {images.max().item()}")  # Value range
+        print(f"Mean: {images.mean().item()}, Std: {images.std().item()}")  # Mean and standard deviation
+
+        # If data is in the range ~[-1, 1], assume it is normalized
+        # (consistent with Normalize using mean=0.5 and std=0.5)
+        if images.min() >= -1 and images.max() <= 1:
+            print("Data is likely normalized.")
+        else:
+            print("Data is NOT normalized.")
+        break  # Check only the first batch
+
+def check_duplicates(train_loader, val_loader, test_loader):
+    """
+    Check for duplicate samples between train, validation, and test datasets.
+    """
+    def get_all_ids(loader):
+        """Extract all sample IDs from a DataLoader."""
+        ids = []
+        for images, labels in loader:
+            # Assuming `labels` contains the unique IDs
+            ids.extend(labels)  # Modify this if your IDs are in `labels` or another structure
+        return set(ids)
+
+    # Extract IDs from all DataLoaders
+    train_ids = get_all_ids(train_loader)
+    val_ids = get_all_ids(val_loader)
+    test_ids = get_all_ids(test_loader)
+
+    # Find duplicates between the sets
+    train_val_duplicates = train_ids & val_ids
+    train_test_duplicates = train_ids & test_ids
+    val_test_duplicates = val_ids & test_ids
+
+    # Print results
+    if train_val_duplicates:
+        print(f"Duplicates found between train and validation: {train_val_duplicates}")
+    else:
+        print("No duplicates between train and validation.")
+
+    if train_test_duplicates:
+        print(f"Duplicates found between train and test: {train_test_duplicates}")
+    else:
+        print("No duplicates between train and test.")
+
+    if val_test_duplicates:
+        print(f"Duplicates found between validation and test: {val_test_duplicates}")
+    else:
+        print("No duplicates between validation and test.")
+
+

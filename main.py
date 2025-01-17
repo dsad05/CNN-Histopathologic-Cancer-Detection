@@ -2,6 +2,8 @@ from preprocess_data import *
 from test_model import *
 from train_model import *
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 epochs = 8
 dataset_size = 220000
 batch = 64
@@ -39,13 +41,13 @@ check_normalization(test_loader, "Test Loader")
 #TRAINING
 print("TRAINING PHASE STARTED")
 print(f"Model initialization {model_name}...")
-model = initialize_model_by_name_from_dictionary(model_name, model_dict)
+model = initialize_model_by_name_from_dictionary(model_name, model_dict).to(device)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 print("Starting training...")
-train_losses, val_losses, val_accuracies = train_and_evaluate(model, optimizer, criterion, train_loader, val_loader, epochs=epochs)
+train_losses, val_losses, val_accuracies = train_and_evaluate(model, optimizer, criterion, train_loader, val_loader, epochs=epochs,device=device)
 print("Training complete.")
 # Save model with date and time in the filename inside the created directory
 print("Saving model...")

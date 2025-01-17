@@ -34,7 +34,7 @@ def initialize_model_by_name_from_dictionary(model_name, model_dict):
 
 
 # Function to evaluate accuracy and loss
-def train_validation_model(model, criterion, data_loader):
+def train_validation_model(model, criterion, data_loader,device):
     print("Evaluating model...")
     model.eval()  # Set model to evaluation mode
     running_loss = 0.0
@@ -42,6 +42,7 @@ def train_validation_model(model, criterion, data_loader):
     total_preds = 0
     with torch.no_grad():  # Disable gradient calculation for evaluation
         for batch_idx, (images, labels) in enumerate(data_loader):
+            images,labels = images.to(device), labels.to(device)
             outputs = model(images)
             loss = criterion(outputs, labels)
             running_loss += loss.item()
@@ -57,7 +58,7 @@ def train_validation_model(model, criterion, data_loader):
     return avg_loss, accuracy
 
 # Training loop
-def train_and_evaluate(model, optimizer, criterion, train_loader, val_loader, epochs):
+def train_and_evaluate(model, optimizer, criterion, train_loader, val_loader, epochs,device):
     print("Training loop started...")
     train_losses = []
     val_losses = []
@@ -69,6 +70,7 @@ def train_and_evaluate(model, optimizer, criterion, train_loader, val_loader, ep
         model.train()
         running_loss = 0.0
         for batch_idx, (images, labels) in enumerate(train_loader):
+            images,labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
             outputs = model(images)
             loss = criterion(outputs, labels)
@@ -81,7 +83,7 @@ def train_and_evaluate(model, optimizer, criterion, train_loader, val_loader, ep
 
         # Evaluate on validation set after each epoch
         print(f"Epoch {epoch + 1} validation started...")
-        val_loss, val_accuracy = train_validation_model(model, criterion, val_loader)
+        val_loss, val_accuracy = train_validation_model(model, criterion, val_loader,device)
         val_losses.append(val_loss)
         val_accuracies.append(val_accuracy)
 

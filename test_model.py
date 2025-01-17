@@ -13,7 +13,7 @@ def load_weights_to_test_model(model, latest_model_dir):
     return model
 
 # Function to test the model
-def test_model(model, data_loader, criterion):
+def test_model(model, data_loader, criterion, device):
     correct_preds = 0
     total_preds = 0
     running_loss = 0.0
@@ -23,6 +23,7 @@ def test_model(model, data_loader, criterion):
     model.eval()  # Set the model to evaluation mode
     with torch.no_grad():
         for images, labels in data_loader:
+            images, labels = images.to(device), labels.to(device)
             outputs = model(images)
             loss = criterion(outputs, labels)  # Calculate loss
             running_loss += loss.item()

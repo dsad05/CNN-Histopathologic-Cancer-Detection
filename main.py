@@ -47,8 +47,14 @@ model = initialize_model_by_name_from_dictionary(model_name, model_dict).to(devi
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
+train_start_time = time.time()
+
 print("Starting training...")
 train_losses, val_losses, val_accuracies = train_and_evaluate(model, optimizer, criterion, train_loader, val_loader, epochs=epochs,device=device)
+
+train_end_time = time.time()
+train_duration = train_end_time - train_start_time
+
 print("Training complete.")
 # Save model with date and time in the filename inside the created directory
 print("Saving model...")
@@ -67,7 +73,14 @@ print(f"Loaded model: {model_name}")
 
 # Test the model
 print("Starting model evaluation...")
+
+test_start_time = time.time()
+
 test_avg_loss, test_accuracy, correct_samples, misclassified_samples = test_model(model, test_loader, criterion)
+
+test_end_time = time.time()
+test_duration = test_end_time - test_start_time
+
 print(f"Test set accuracy: {test_accuracy:.2f}%")
 
 # Visualize correctly and incorrectly classified samples
@@ -77,4 +90,4 @@ visualize_samples(misclassified_samples, "Misclassified Samples", save_dir, mode
 # # Plot the results
 plot_test_results(test_avg_loss, test_accuracy, correct_samples, misclassified_samples, model_name, save_dir, current_time)
 
-save_model_configuration(model_name, save_dir, current_time, dataset_size, batch, train_losses, val_losses, val_accuracies, model, optimizer, criterion, train_loader, val_loader, epochs, test_accuracy, test_avg_loss)
+save_model_configuration(model_name, save_dir, current_time, dataset_size, batch, train_losses, val_losses, val_accuracies, model, optimizer, criterion, train_loader, val_loader, epochs, test_accuracy, test_avg_loss, train_duration, test_duration)

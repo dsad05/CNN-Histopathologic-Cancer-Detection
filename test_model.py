@@ -76,7 +76,7 @@ def plot_test_results(avg_loss, accuracy, correct_samples, misclassified_samples
     plt.savefig(plot_filename)
     plt.show()
 
-def save_model_configuration(model_name, save_dir, current_time, dataset_size, batch_size, train_losses, val_losses, val_accuracies, model, optimizer, criterion, train_loader, val_loader, epochs, accuracy, avg_loss):
+def save_model_configuration(model_name, save_dir, current_time, dataset_size, batch_size, train_losses, val_losses, val_accuracies, model, optimizer, criterion, train_loader, val_loader, epochs, accuracy, avg_loss, train_duration, test_duration):
     # Save model configuration
     config = {
         'model_name': model_name,
@@ -88,7 +88,9 @@ def save_model_configuration(model_name, save_dir, current_time, dataset_size, b
         'val_losses': val_losses,
         'val_accuracies': val_accuracies,
         'test_accuracy': accuracy,
-        'test avg_loss': avg_loss
+        'test avg_loss': avg_loss,
+        'train duration': train_duration,
+        'test duration': test_duration
     }
     config_filename = os.path.join(save_dir, f"{model_name}_cancer_{current_time}_config.json")
     with open(config_filename, 'w') as config_file:

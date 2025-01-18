@@ -68,7 +68,7 @@ plot_train_metrics(train_losses, val_losses, val_accuracies, model_name, save_di
 print("TESTING PHASE STARTED")
 print("Loading model...")
 print(f"Using the latest model directory: {model_filename}")
-model = load_weights_to_test_model(model, model_filename)
+model = load_weights_to_test_model(model, model_filename).to(device)
 print(f"Loaded model: {model_name}")
 
 # Test the model
@@ -76,7 +76,7 @@ print("Starting model evaluation...")
 
 test_start_time = time.time()
 
-test_avg_loss, test_accuracy, correct_samples, misclassified_samples = test_model(model, test_loader, criterion)
+test_avg_loss, test_accuracy, correct_samples, misclassified_samples = test_model(model, test_loader, criterion, device=device)
 
 test_end_time = time.time()
 test_duration = test_end_time - test_start_time

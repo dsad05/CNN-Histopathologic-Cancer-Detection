@@ -50,49 +50,58 @@ class CustomDataset(Dataset):
 
         return image, self.labels[idx]
 
+#
+# train_transform = transforms.Compose([
+#     transforms.RandomRotation(30),
+#     transforms.RandomCrop(64),
+#     transforms.RandomHorizontalFlip(),
+#     transforms.RandomVerticalFlip(),
+#     transforms.ColorJitter(brightness=0.2, contrast=0.2),
+#     transforms.ToTensor(),  # Convert the image to a tensor
+#     transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])  # Normalize the image
+# ])
 
-train_transform = transforms.Compose([
-    transforms.RandomRotation(30),
-    transforms.RandomCrop(64),
-    transforms.RandomHorizontalFlip(),
-    transforms.RandomVerticalFlip(),
-    transforms.ColorJitter(brightness=0.2, contrast=0.2),
-    transforms.ToTensor(),  # Convert the image to a tensor
-    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])  # Normalize the image
-])
+# val_transform = transforms.Compose([
+#     transforms.ToTensor(),  # Convert the image to a tensor
+#     transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])  # Normalize the image for validation
+# ])
 
-val_transform = transforms.Compose([
-    transforms.ToTensor(),  # Convert the image to a tensor
-    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])  # Normalize the image for validation
-])
+def get_data_loaders(data_dir, labels_file, total_size,  batch_size, train_ratio=0.7, val_ratio=0.15, use_existing_splits=False, splits_dir=None):
+    if use_existing_splits:
+        if splits_dir is None:
+            raise ValueError("When using existing splits, splits_dir must be provided.")
 
-def get_data_loaders(data_dir, labels_file, total_size,  batch_size, train_ratio=0.7, val_ratio=0.15):
-    # Load the labels file
-    labels_df = pd.read_csv(labels_file)
+        print("Using existing splits...")
+        train_df = pd.read_csv(os.path.join(splits_dir, "train_split.csv"))
+        val_df = pd.read_csv(os.path.join(splits_dir, "val_split.csv"))
+        test_df = pd.read_csv(os.path.join(splits_dir, "test_split.csv"))
+    else:
+        labels_df = pd.read_csv(labels_file)
 
-    # Ensure total_size does not exceed dataset size
-    if total_size > len(labels_df):
-        raise ValueError(f"Requested total_size={total_size} exceeds dataset size={len(labels_df)}")
+        # Ensure total_size does not exceed dataset size
+        if total_size > len(labels_df):
+            raise ValueError(f"Requested total_size={total_size} exceeds dataset size={len(labels_df)}")
 
-    # Stratified sampling to select total_size samples
-    _, sampled_df = train_test_split(
-        labels_df, test_size=total_size, random_state=0, stratify=labels_df['label']
-    )
+        # Stratified sampling to select total_size samples
+        _, sampled_df = train_test_split(
+            labels_df, test_size=total_size, random_state=0, stratify=labels_df['label']
+        )
 
-    # Calculate sizes for train, validation, and test sets
-    train_size = int(total_size * train_ratio)
-    val_size = int(total_size * val_ratio)
-    test_size = total_size - train_size - val_size
+        # Calculate sizes for train, validation, and test sets
+        train_size = int(total_size * train_ratio)
+        val_size = int(total_size * val_ratio)
+        test_size = total_size - train_size - val_size
 
-    # Split the sampled data into train, validation, and test sets
-    train_df, temp_df = train_test_split(
-        sampled_df, test_size=(val_size + test_size), random_state=0, stratify=sampled_df['label']
-    )
-    val_df, test_df = train_test_split(
-        temp_df, test_size=test_size / (val_size + test_size), random_state=0, stratify=temp_df['label']
-    )
+        # Split the sampled data into train, validation, and test sets
+        train_df, temp_df = train_test_split(
+            sampled_df, test_size=(val_size + test_size), random_state=0, stratify=sampled_df['label']
+        )
+        val_df, test_df = train_test_split(
+            temp_df, test_size=test_size / (val_size + test_size), random_state=0, stratify=temp_df['label']
+        )
+        print("Saving train, val and test splits...")
+        save_splits(train_df, val_df, test_df, splits_dir)
 
-    # Print before creating the datasets for train, validation, and test
     print("Creating Train dataset...")
     train_dataset = CustomDataset(data_dir=data_dir, labels_df=train_df)
 
@@ -103,24 +112,23 @@ def get_data_loaders(data_dir, labels_file, total_size,  batch_size, train_ratio
     test_dataset = CustomDataset(data_dir=data_dir, labels_df=test_df)
 
     # Create DataLoaders for training, validation, and test sets
+    print("Creating DataLoaders...")
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
     print(
-        f"Data split completed: {len(train_df)} training samples, {len(val_df)} validation samples, {len(test_df)} test samples.")
+        f"Data split: {len(train_df)} training samples, {len(val_df)} validation samples, {len(test_df)} test samples.")
 
     return train_loader, val_loader, test_loader
 
 
 def check_normalization(loader, loader_name):
-    """Check data normalization in the DataLoader."""
-    for images, labels in loader:  # Get the first batch
-        # Calculate statistics
+    for images, labels in loader:
         print(f"--- {loader_name} ---")
-        print(f"Shape: {images.shape}")  # Batch size and dimensions
-        print(f"Min: {images.min().item()}, Max: {images.max().item()}")  # Value range
-        print(f"Mean: {images.mean().item()}, Std: {images.std().item()}")  # Mean and standard deviation
+        print(f"Shape: {images.shape}")
+        print(f"Min: {images.min().item()}, Max: {images.max().item()}")
+        print(f"Mean: {images.mean().item()}, Std: {images.std().item()}")
 
         # If data is in the range ~[-1, 1], assume it is normalized
         # (consistent with Normalize using mean=0.5 and std=0.5)
@@ -131,9 +139,6 @@ def check_normalization(loader, loader_name):
         break  # Check only the first batch
 
 def check_duplicates(train_loader, val_loader, test_loader):
-    """
-    Check for duplicate samples between train, validation, and test datasets.
-    """
     def get_all_ids(loader):
         """Extract all sample IDs from a DataLoader."""
         ids = []
@@ -169,3 +174,17 @@ def check_duplicates(train_loader, val_loader, test_loader):
         print("No duplicates between validation and test.")
 
 
+def save_splits(train_df, val_df, test_df, output_dir):
+    os.makedirs(output_dir, exist_ok=True)
+    train_df.to_csv(os.path.join(output_dir, "train_split.csv"), index=False)
+    val_df.to_csv(os.path.join(output_dir, "val_split.csv"), index=False)
+    test_df.to_csv(os.path.join(output_dir, "test_split.csv"), index=False)
+    print(f"Splits saved to {output_dir}")
+
+
+def load_splits(split_dir):
+    train_df = pd.read_csv(os.path.join(split_dir, "train_split.csv"))
+    val_df = pd.read_csv(os.path.join(split_dir, "val_split.csv"))
+    test_df = pd.read_csv(os.path.join(split_dir, "test_split.csv"))
+    print("Splits loaded successfully.")
+    return train_df, val_df, test_df

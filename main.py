@@ -14,6 +14,7 @@ model_name = 'resnet50'
 model_dir = './models'
 data_dir = './data/train'
 labels_file = './data/train_labels.csv'
+splits_dir = './data/splits'
 
 save_dir = os.path.join("models", current_time)
 os.makedirs(save_dir, exist_ok=True)
@@ -28,15 +29,15 @@ model_dict = {
 
 print("Starting program...")
 print("Loading data...")
-train_loader, val_loader, test_loader = get_data_loaders(data_dir, labels_file, dataset_size, batch)
+train_loader, val_loader, test_loader = get_data_loaders(data_dir, labels_file, dataset_size, batch, use_existing_splits=True, splits_dir=splits_dir)
 print("Data loaded successfully.")
 
-print("Checking normalization...")
-check_normalization(train_loader, "Train Loader")
-check_normalization(val_loader, "Validation Loader")
-check_normalization(test_loader, "Test Loader")
-
-#check_duplicates(train_loader, val_loader, test_loader)
+# print("Checking normalization...")
+# check_normalization(train_loader, "Train Loader")
+# check_normalization(val_loader, "Validation Loader")
+# check_normalization(test_loader, "Test Loader")
+#
+# check_duplicates(train_loader, val_loader, test_loader)
 
 #TRAINING
 print("TRAINING PHASE STARTED")

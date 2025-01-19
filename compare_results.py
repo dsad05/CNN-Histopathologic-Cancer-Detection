@@ -79,12 +79,5 @@ def compare_models(model_json_files):
     plt.title('Porównanie czasu treningu różnych modeli')
     plt.show()
 
-# Lista plików JSON z wynikami różnych modeli
-model_json_files = [
-    'path_to_model_1.json',  # Zmień na rzeczywiste ścieżki do plików JSON
-    'path_to_model_2.json',
-    'path_to_model_3.json'
-]
-
 model_json_files = find_json_files_in_ok_dirs(model_dir)
 compare_models(model_json_files)

@@ -6,11 +6,11 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 epochs = 8
 dataset_size = 220000
-batch = 64
+batch = 64*8
 
 current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-model_name = 'resnet50'
+model_name = 'inceptionv3'
 model_dir = './models'
 data_dir = './data/train'
 labels_file = './data/train_labels.csv'
@@ -24,7 +24,10 @@ model_dict = {
     'resnet50': lambda: models.resnet50(weights=ResNet50_Weights.IMAGENET1K_V1),
     'densenet121': lambda: models.densenet121(weights=DenseNet121_Weights.IMAGENET1K_V1),
     'efficientnetb0': lambda: models.efficientnet_b0(weights=EfficientNet_B0_Weights.IMAGENET1K_V1),
-    'inceptionv3': lambda: models.inception_v3(weights=Inception_V3_Weights.IMAGENET1K_V1)
+    'mobilenetv2': lambda: models.mobilenet_v2(weights=MobileNet_V2_Weights.IMAGENET1K_V1),
+    'efficientnetv2_s': lambda: models.efficientnet_v2_s(weights=EfficientNet_V2_S_Weights.IMAGENET1K_V1),
+    'efficientnetv2_m': lambda: models.efficientnet_v2_m(weights=EfficientNet_V2_M_Weights.IMAGENET1K_V1),
+    'convnext_tiny': lambda: models.convnext_tiny(weights=ConvNeXt_Tiny_Weights.IMAGENET1K_V1)
 }
 
 print("Starting program...")

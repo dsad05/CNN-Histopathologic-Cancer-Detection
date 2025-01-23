@@ -27,7 +27,9 @@ model_dict = {
     'mobilenetv2': lambda: models.mobilenet_v2(weights=MobileNet_V2_Weights.IMAGENET1K_V1),
     'efficientnetv2_s': lambda: models.efficientnet_v2_s(weights=EfficientNet_V2_S_Weights.IMAGENET1K_V1),
     'efficientnetv2_m': lambda: models.efficientnet_v2_m(weights=EfficientNet_V2_M_Weights.IMAGENET1K_V1),
-    'convnext_tiny': lambda: models.convnext_tiny(weights=ConvNeXt_Tiny_Weights.IMAGENET1K_V1)
+    'convnext_tiny': lambda: models.convnext_tiny(weights=ConvNeXt_Tiny_Weights.IMAGENET1K_V1),
+    'shufflenetv2': lambda: models.shufflenet_v2_x1_0(weights=ShuffleNet_V2_X1_0_Weights.IMAGENET1K_V1),
+    'regnetx_400mf': lambda: models.regnet_x_400mf(weights=RegNet_X_400MF_Weights.IMAGENET1K_V1)
 }
 
 print("Starting program...")

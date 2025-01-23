@@ -6,11 +6,10 @@ import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torchvision import models
 from torchvision.models import (
-    ResNet18_Weights, ResNet50_Weights, DenseNet121_Weights, 
+    ResNet18_Weights, ResNet50_Weights, DenseNet121_Weights,
     EfficientNet_B0_Weights, EfficientNet_V2_S_Weights, EfficientNet_V2_M_Weights,
-    MobileNet_V2_Weights, ConvNeXt_Tiny_Weights
+    MobileNet_V2_Weights, ConvNeXt_Tiny_Weights, ShuffleNet_V2_X1_0_Weights, RegNet_X_400MF_Weights
 )
 
 from preprocess_data import get_data_loaders
@@ -19,18 +18,22 @@ from preprocess_data import get_data_loaders
 # Define model using updated way to load pretrained weights (ResNet18 for fast training)
 def modify_last_layer(model, model_name):
     print("Initializing model...")
+
     if model_name in ['resnet18', 'resnet50']:
         model.fc = nn.Linear(model.fc.in_features, 2)
     elif model_name == 'densenet121':
         model.classifier = nn.Linear(model.classifier.in_features, 2)
-    elif model_name in ['efficientnetb0', 'efficientnetv2_s', 'efficientnetv2_m']:
-        model.classifier[1] = nn.Linear(model.classifier[1].in_features, 2)
-    elif model_name == 'mobilenetv2':
+    elif model_name in ['efficientnetb0', 'efficientnetv2_s', 'efficientnetv2_m', 'mobilenetv2']:
         model.classifier[1] = nn.Linear(model.classifier[1].in_features, 2)
     elif model_name == 'convnext_tiny':
         model.classifier[2] = nn.Linear(model.classifier[2].in_features, 2)
+    elif model_name == 'shufflenetv2':
+        model.fc = nn.Linear(model.fc.in_features, 2)
+    elif model_name == 'regnetx_400mf':
+        model.fc = nn.Linear(model.fc.in_features, 2)
     else:
         raise ValueError(f"Model '{model_name}' is not supported for modification.")
+
     return model
 
 def initialize_model_by_name_from_dictionary(model_name, model_dict):

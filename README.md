@@ -17,7 +17,7 @@ The project uses the dataset provided by Kaggle. It consists of pathology image 
 
 ### 1. Clone the repository:  
 ```bash  
-git clone https://github.com/yourusername/histopathologic-cancer-detection.git  
+git clone https://github.com/dsad05/histopathologic-cancer-detection.git  
 ```  
 
 ### 2. Download the dataset from [Kaggle](https://www.kaggle.com/competitions/histopathologic-cancer-detection/data) and place it in the `data/` folder.  
